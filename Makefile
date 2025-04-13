@@ -1,3 +1,13 @@
+VERSION ?= dev
+NAME = rodeo
+#$(basename $(dir $(abspath "$PWD")))
+ORG = acmerocket
+HASH = $(shell git describe --always)
+RELEASE = $(VERSION)-$(HASH)
+PROJECT = github.com/$(ORG)/$(NAME)
+GOVARS = -X $(PROJECT)/main.Version=$(VERSION) -X $(PROJECT)/main.VersionHash=$(HASH)
+DEBUGVAR = -X -X $(PROJECT)/main.Debug=ON
+
 all: test
 
 build:
@@ -22,19 +32,7 @@ cover:
 	#open .cover.html
 
 release: test
-	# version = "v0.1.0"
-	# name = "rodeo"
-	# owner = "acmerocket"
-	# project = "github.com/${owner}/${name}"
-	# project_vers = "${project}@${version}"
-	# HASH=$(shell git describe --always)
-	# LDFLAGS=-ldflags "-s -w -X main.Version=${HASH}"
-	FIXME increment build number
-	buildhash=$(shell git describe --always)
-	git commit -m "$name: releasing version $version, build $buildhash, on $date"
-	git tag $version
-	git push origin $version
-	#GOPROXY=proxy.golang.org go list -m "${project}@${version}"
-	# requires export GITHUB_TOKEN="YOUR_GH_TOKEN", see https://github.com/settings/tokens/new?scopes=repo,write:packages
-	# meh... still no bump major/minor
-	# goreleaser release
+	git commit -m "$(NAME): releasing version $(RELEASE) on $(shell date)"
+	git tag "$(RELEASE)"
+	git push origin "$(RELEASE)"
+	GOPROXY=proxy.golang.org go list -m "$(PROJECT)@$(RELEASE)"

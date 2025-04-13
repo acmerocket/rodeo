@@ -1,5 +1,5 @@
 # rodeo
-Format JSON based on markdown templates.
+Format JSON based on markdown templates. Accept input as well-formed chunks of JSON to be parsed and applied to a template.
 
 Designed for use with [goat](https://github.com/bluesky-social/indigo/tree/main/cmd/goat)
 
@@ -11,7 +11,9 @@ Designed for use with [goat](https://github.com/bluesky-social/indigo/tree/main/
 
 ## Build
 
-Accept input as well-formed chunks (lines, seperated by \n) of JSON to be parsed and applied to a template.
+   git clone git@github.com:acmerocket/rodeo.git
+   cd rodeo
+   go build .
 
 ## Development Log
 

@@ -70,3 +70,5 @@ https://github.com/charmbracelet/glamour
 Integrated glamour and templates.
 
 Created new github project: https://github.com/acmerocket/rodeo
+
+Everything committed and uploaded.

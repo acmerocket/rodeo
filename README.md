@@ -10,10 +10,11 @@ Designed for use with [goat](https://github.com/bluesky-social/indigo/tree/main/
     goat firehose | rodeo
 
 ## Build
-
-   git clone git@github.com:acmerocket/rodeo.git
-   cd rodeo
-   go build .
+```
+git clone git@github.com:acmerocket/rodeo.git
+cd rodeo
+go build .
+```
 
 ## Development Log
 

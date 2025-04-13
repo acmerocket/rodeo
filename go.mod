@@ -1,4 +1,4 @@
-module rodeo
+module github.com/acmerocket/rodeo
 
 go 1.23.2
 

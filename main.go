@@ -23,43 +23,32 @@ import (
 //go:embed templates
 var templates embed.FS
 
-func load_template(type_name string) ([]byte, error) {
+func load_template(type_name string) (*template.Template, error) {
 	if type_name == "" {
 		type_name = "default"
 	}
 	template_file := "templates/" + type_name + ".md"
-	return templates.ReadFile(template_file)
+	data, err := templates.ReadFile(template_file)
+	if err != nil {
+		return nil, err
+	}
+	return template.New(type_name).Parse(string(data))
 }
 
 func apply_template(tmpl_name string, record map[string]any) (string, error) {
 	if len(record) == 0 {
 		return "", nil
 	}
-	if tmpl_name == "" {
-		tmpl_name = "default"
-	}
-	tmplfile := "templates/" + tmpl_name + ".md"
-	tmpl, err := template.ParseFiles(tmplfile)
+	tmpl, err := load_template(tmpl_name)
 	if err != nil {
-		// assume missing file, no way to stat the embed
-		tmpl, err = template.ParseFiles("templates/default.md")
-		if err != nil {
-			return "", err
-		}
+		return "", err
 	}
-
 	var buffer bytes.Buffer
 	err = tmpl.Execute(&buffer, record)
 	if err != nil {
 		return "", err
 	}
-
 	return buffer.String(), nil
-	// out, err := glamour.Render(buffer.String(), "dark")
-	// if err != nil {
-	// 	return "", err
-	// }
-	// return strings.TrimSpace(out), nil
 }
 
 func render(buf string) {

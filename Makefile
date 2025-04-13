@@ -33,7 +33,8 @@ cover:
 	#open .cover.html
 
 release: test
-	git commit -m "$(NAME): releasing version $(RELEASE) on $(shell date)"
-	git tag "$(RELEASE)"
-	git push origin "$(RELEASE)"
-	GOPROXY=proxy.golang.org go list -m "$(PROJECT)@$(RELEASE)"
+	git commit -m "$(NAME): releasing version $(VERSION) $(HASH) on $(shell date)"
+	git push
+	git tag "$(VERSION)"
+	git push origin "$(VERSION)"
+	GOPROXY=proxy.golang.org go list -m "$(PROJECT)@$(VERSION)"

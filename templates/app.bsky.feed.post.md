@@ -1,0 +1,2 @@
+📬 {{.record.createdAt}}
+> {{.record.text}}

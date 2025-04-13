@@ -4,7 +4,7 @@
 ## tl;dr
 ```
 go install github.com/acmerocket/rodeo@latest
-goat firehose | rodeo
+goat firehose --ops | rodeo
 ```
 
 Format JSON based on markdown templates. Accept input as well-formed chunks of JSON to be parsed and applied to a template.
@@ -72,5 +72,9 @@ https://github.com/charmbracelet/glamour
 Integrated glamour and templates.
 
 Created new github project: https://github.com/acmerocket/rodeo
+
+todo
+- [ ] wrap width (use terminal)
+- [x] non-record records
 
 Everything committed and uploaded.

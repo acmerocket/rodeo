@@ -3,8 +3,8 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"embed"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -17,19 +17,35 @@ import (
 	"github.com/charmbracelet/glamour"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
+	"golang.org/x/term"
 )
 
+//go:embed templates
+var templates embed.FS
+
+func load_template(type_name string) ([]byte, error) {
+	if type_name == "" {
+		type_name = "default"
+	}
+	template_file := "templates/" + type_name + ".md"
+	return templates.ReadFile(template_file)
+}
+
 func apply_template(tmpl_name string, record map[string]any) (string, error) {
+	if len(record) == 0 {
+		return "", nil
+	}
 	if tmpl_name == "" {
 		tmpl_name = "default"
 	}
 	tmplfile := "templates/" + tmpl_name + ".md"
-	if _, err := os.Stat(tmplfile); errors.Is(err, os.ErrNotExist) {
-		tmplfile = "templates/default.md"
-	}
 	tmpl, err := template.ParseFiles(tmplfile)
 	if err != nil {
-		return "", err
+		// assume missing file, no way to stat the embed
+		tmpl, err = template.ParseFiles("templates/default.md")
+		if err != nil {
+			return "", err
+		}
 	}
 
 	var buffer bytes.Buffer
@@ -38,11 +54,12 @@ func apply_template(tmpl_name string, record map[string]any) (string, error) {
 		return "", err
 	}
 
-	out, err := glamour.Render(buffer.String(), "dark")
-	if err != nil {
-		return "", err
-	}
-	return out, nil
+	return buffer.String(), nil
+	// out, err := glamour.Render(buffer.String(), "dark")
+	// if err != nil {
+	// 	return "", err
+	// }
+	// return strings.TrimSpace(out), nil
 }
 
 func render(buf string) {
@@ -89,8 +106,6 @@ func render_table(record map[string]any) {
 			if err != nil {
 				log.Fatal(err)
 			}
-			//fmt.Println(string(b))
-			//fmt.Printf("map: %v\n", v.Interface())
 			t.Row(key, string(b))
 
 		default:
@@ -104,17 +119,51 @@ func render_table(record map[string]any) {
 	fmt.Println(t.Render())
 }
 
-func toString(m map[string]any) string {
+func toString(record map[string]any) string {
 	b := new(bytes.Buffer)
-	for key, value := range m {
+	for key, value := range record {
 		fmt.Fprintf(b, "%s=%v\n", key, value)
 	}
 	return b.String()
 }
 
+func parse(buf []byte) map[string]any {
+	var record map[string]any
+	json.Unmarshal(buf, &record)
+	return record
+}
+
+func resolve_type(record map[string]any) string {
+	// check type and record.$type
+	if t, ok := record["type"]; ok {
+		return t.(string)
+	} else if a, ok := record["action"]; ok {
+		return a.(string)
+	} else if r, ok := record["record"]; ok {
+		rec := r.(map[string]any)
+		return rec["$type"].(string)
+	}
+	return "default"
+}
+
 func main() {
 	r := bufio.NewReader(os.Stdin)
 	buf := make([]byte, 0, 4*1024)
+
+	width, _, err := term.GetSize(int(os.Stdout.Fd()))
+	if err != nil {
+		log.Fatal(err)
+	}
+	//println("width:", width, "height:", height)
+
+	// Create a new renderer.
+	renderer, err := glamour.NewTermRenderer(
+		glamour.WithAutoStyle(),
+		glamour.WithWordWrap(width),
+	)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error creating renderer: %s\n", err)
+	}
 
 	for {
 		n, err := r.Read(buf[:cap(buf)])
@@ -129,23 +178,19 @@ func main() {
 			log.Fatal(err) // FIXME
 		}
 
-		var record map[string]any
-		json.Unmarshal(buf, &record)
-		if type_name, ok := record["type"].(string); ok {
-			md, err := apply_template(type_name, record)
-			if err != nil {
-				log.Fatal(err)
-			}
-			md_strip := strings.TrimSpace(md)
-			if len(md_strip) > 0 {
-				fmt.Println(md_strip)
-			} else {
-				//fmt.Println("!!! " + toString(record))
-			}
-		} else {
-			if len(record) > 0 {
-				fmt.Println(record)
-			}
+		record := parse(buf)
+		type_name := resolve_type(record)
+		md, err := apply_template(type_name, record)
+		if err != nil {
+			log.Fatal(err)
+		}
+		rendered, err := renderer.Render(md)
+		if err != nil {
+			log.Fatal(err)
+		}
+		trimmed := strings.TrimSpace(rendered)
+		if len(trimmed) > 0 {
+			fmt.Println(trimmed)
 		}
 	}
 }

@@ -1,0 +1,1 @@
+🫸🏽 {{.record.subject}} {{.record.createdAt}}

@@ -24,7 +24,7 @@ install: test
 
 clean:
 	go clean ./...
-	rm -f .cover.html .cover.out
+	rm -fr .cover.html .cover.out dist/
 
 cover:
 	go test -v -coverprofile .cover.out ./...

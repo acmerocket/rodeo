@@ -10,11 +10,12 @@ DEBUGVAR = -X -X $(PROJECT)/main.Debug=ON
 
 all: test
 
-build:
-	go build -v ./...
-
 tidy:
 	go mod tidy
+	go fmt ./...
+
+build: tidy
+	go build ./...
 
 test: tidy
 	go test ./...

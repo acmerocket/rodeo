@@ -1,13 +1,15 @@
 # rodeo
+
+
+## tl;dr
+```
+go install github.com/acmerocket/rodeo@latest
+goat firehose | rodeo
+```
+
 Format JSON based on markdown templates. Accept input as well-formed chunks of JSON to be parsed and applied to a template.
 
 Designed for use with [goat](https://github.com/bluesky-social/indigo/tree/main/cmd/goat)
-
-## tl;dr
-
-    go install github.com/acmerocket/rodeo
-
-    goat firehose | rodeo
 
 ## Build
 ```

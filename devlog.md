@@ -4,12 +4,20 @@
 Starting with some clean up of the project (break out main), adding a minimal test.
 
 Goal is to:
-- [ ] make "post" param match "app.bsky.feed.post"
+- [x] make "post" param match "app.bsky.feed.post"
+- [x] Update readme
 - [ ] add initial template externalization: type | type=othertype | type=path/to/template.md
 
 Next, use "README-driven development" to write the usage section in the README to describe how I want to system to work. Later, once the code is implemented and "--help" contains full and accurate usage, I'll copy that to useage as well.
 
-See [[README.md#Usage]]
+See [README.md#Usage](README.md#Usage)
+
+Updated! Next, add the general type matching above. And start with a test! `rodeo_test.go`
+
+Added test for `match()`, implemented required behavior. DONE!
+
+Next: template parsing from params.
+
 
 
 

@@ -8,7 +8,6 @@ import (
 	"log"
 	"log/slog"
 	"os"
-	"slices"
 	"strconv"
 	"strings"
 	"text/template"
@@ -57,71 +56,6 @@ func apply_template(tmpl_name string, record map[string]any) (string, error) {
 	}
 	return buffer.String(), nil
 }
-
-// func render(buf string) {
-// 	// Create a new colorprofile writer. We'll use it to detect the color
-// 	// profile and downsample colors when necessary.
-// 	w := colorprofile.NewWriter(os.Stdout, os.Environ())
-
-// 	// While we're at it, let's jot down the detected color profile in the
-// 	// markdown output while we're at it.
-// 	//fmt.Fprintf(&buf, "\n\nBy the way, this was rendererd as _%s._\n", w.Profile)
-
-// 	// Okay, now let's render some markdown.
-// 	r, err := glamour.NewTermRenderer(glamour.WithEnvironmentConfig())
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-// 	md, err := r.RenderBytes([]byte(buf))
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-
-// 	// And finally, write it to stdout using the colorprofile writer. This will
-// 	// ensure colors are downsampled if necessary.
-// 	fmt.Fprintf(w, "%s\n", md)
-// }
-
-// func render_table(record map[string]any) {
-// 	s := lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Render
-// 	t := table.New()
-// 	for key, value := range record {
-// 		//fmt.Println(key, value.(string))
-// 		v := reflect.ValueOf(value)
-// 		switch v.Kind() {
-// 		case reflect.Map:
-// 			for subkey, subvalue := range value.(map[string]any) {
-// 				b, err := json.Marshal(subvalue)
-// 				if err != nil {
-// 					log.Fatal(err)
-// 				}
-// 				t.Row(s(key+"."+subkey), string(b))
-// 			}
-// 		case reflect.Slice:
-// 			b, err := json.Marshal(value)
-// 			if err != nil {
-// 				log.Fatal(err)
-// 			}
-// 			t.Row(key, string(b))
-
-// 		default:
-// 			b, err := json.Marshal(value)
-// 			if err != nil {
-// 				log.Fatal(err)
-// 			}
-// 			t.Row(s(key), s(string(b)))
-// 		}
-// 	}
-// 	fmt.Println(t.Render())
-// }
-
-// func toString(record map[string]any) string {
-// 	b := new(bytes.Buffer)
-// 	for key, value := range record {
-// 		fmt.Fprintf(b, "%s=%v\n", key, value)
-// 	}
-// 	return b.String()
-// }
 
 func parse(buf []byte) map[string]any {
 	if len(buf) == 0 {
@@ -182,6 +116,18 @@ func render(type_name string, record map[string]any, renderer *glamour.TermRende
 	}
 }
 
+func matches(type_name string, types []string) bool {
+	if len(types) == 0 {
+		return true
+	}
+	for _, t := range types {
+		if strings.Contains(type_name, t) {
+			return true
+		}
+	}
+	return false
+}
+
 func render_buffer(buf []byte, types []string, renderer *glamour.TermRenderer) {
 	record := parse(buf)
 	if record == nil {
@@ -189,8 +135,7 @@ func render_buffer(buf []byte, types []string, renderer *glamour.TermRenderer) {
 		return
 	}
 	type_name := resolve_type(record)
-
-	if len(types) == 0 || slices.Contains(types, type_name) {
+	if matches(type_name, types) {
 		render(type_name, record, renderer)
 	} else {
 		slog.Debug("skipping type", "type_name", type_name, "types", types)

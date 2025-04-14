@@ -12,15 +12,16 @@ goat firehose --ops | rodeo post
 [Glamour](https://github.com/charmbracelet/glamour).
 
 Designed originally for use with
-[goat](https://github.com/bluesky-social/indigo/tree/main/cmd/goat)
+[goat](https://github.com/bluesky-social/indigo/tree/main/cmd/goat).
 
 ## Usage
 
 FIXME: Usage here!
 
-#### Examples
+### Examples
 
-Grab the [ATmosphere](https://atproto.com/guides/glossary#atmosphere) firehose and process it using the standard templates:
+Grab the
+[ATmosphere](https://atproto.com/guides/glossary#atmosphere) firehose and process it using the standard templates:
 ```
 goat firehose --ops | rodeo
 ```
@@ -69,7 +70,7 @@ This project uses [`make`](https://www.gnu.org/software/make/) and provides:
 | `make release` | Release the project. |
 | `make clean`   | Clean up, remove all generates files. |
 
-#### Releases
+### Release
 To release a new version, specify the version:
 ```
 VERSION=v0.4.0 make release

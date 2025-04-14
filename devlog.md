@@ -336,7 +336,11 @@ interrupt handling is working. type counts printing
 
 time to cut a new release!
 
+```
 VERSION=0.5.0 make release
+```
+
+
 
 ## 2025-04-12
 Starting work on this to see it I can make an adequite filter/formtter for [goat](https://github.com/bluesky-social/indigo/tree/main/cmd/goat) that prints selected records with fancy terminal formatting based on [lipgloss](https://github.com/charmbracelet/lipgloss).

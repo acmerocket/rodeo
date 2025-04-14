@@ -340,6 +340,7 @@ time to cut a new release!
 VERSION=0.5.0 make release
 ```
 
+Adding a summary template.
 
 
 ## 2025-04-12

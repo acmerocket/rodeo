@@ -37,7 +37,7 @@ goat firehose --ops | rodeo post like
 - `post=path/to/template.md`: Use the specified template for messages that match `post`.
 
 
-To list supported [[built-in message templates]](./templates/):
+To list supported [built-in message templates](./templates/):
 ```
 rodeo --list-templates
 ```

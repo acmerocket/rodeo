@@ -1,5 +1,24 @@
 # Development Log
 
+## 2025-04-14
+Starting with some clean up of the project (break out main), adding a minimal test.
+
+Goal is to:
+- [ ] make "post" param match "app.bsky.feed.post"
+- [ ] add initial template externalization: type | type=othertype | type=path/to/template.md
+
+Next, use "README-driven development" to write the usage section in the README to describe how I want to system to work. Later, once the code is implemented and "--help" contains full and accurate usage, I'll copy that to useage as well.
+
+See [[README.md#Usage]]
+
+
+
+Time to release!
+```
+VERSION=v0.6.0 make release
+```
+
+
 ## 2025-04-13
 Moved developer log to seperate file: devlog.md (this file)
 

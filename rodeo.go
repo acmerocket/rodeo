@@ -25,14 +25,19 @@ func inc_type_use(type_name string) {
 	type_uses[type_name] += 1
 }
 
-func load_template(type_name string) (*template.Template, error) {
-	if type_name == "" {
-		type_name = "default"
+func load_file(file_name string) (*template.Template, error) {
+	data, err := os.ReadFile(file_name)
+	if err != nil {
+		return nil, err
 	}
+	return template.New(file_name).Parse(string(data))
+}
+
+func load_embed(type_name string) (*template.Template, error) {
 	template_file := "templates/" + type_name + ".md"
 	data, err := templates.ReadFile(template_file)
 	if os.IsNotExist(err) {
-		slog.Debug("template not found", "name", type_name)
+		slog.Error("template not found", "name", template_file)
 		data, err = templates.ReadFile("templates/default.md")
 	}
 	if err != nil {
@@ -41,11 +46,39 @@ func load_template(type_name string) (*template.Template, error) {
 	return template.New(type_name).Parse(string(data))
 }
 
-func apply_template(tmpl_name string, record map[string]any) (string, error) {
+func resolve_template(type_name string, type_params map[string]string) string {
+	template_name := ""
+	if len(type_params) == 0 {
+		template_name = type_name
+	} else {
+		for key, value := range type_params {
+			if strings.Contains(type_name, key) {
+				if value == "" {
+					template_name = type_name
+				} else {
+					template_name = value
+				}
+			}
+		}
+	}
+	return template_name
+}
+
+func load_template(type_name string, type_params map[string]string) (*template.Template, error) {
+	template_name := resolve_template(type_name, type_params)
+	if strings.HasSuffix(template_name, ".md") {
+		// assumes actual file
+		return load_file(template_name)
+	} else {
+		return load_embed(template_name)
+	}
+}
+
+func apply_template(tmpl_name string, type_params map[string]string, record map[string]any) (string, error) {
 	if len(record) == 0 {
 		return "", nil
 	}
-	tmpl, err := load_template(tmpl_name)
+	tmpl, err := load_template(tmpl_name, type_params)
 	if err != nil {
 		return "", err
 	}
@@ -101,8 +134,8 @@ func build_renderer(stream *os.File) (*glamour.TermRenderer, error) {
 	)
 }
 
-func render(type_name string, record map[string]any, renderer *glamour.TermRenderer) {
-	md, err := apply_template(type_name, record)
+func render(type_name string, record map[string]any, params map[string]string, renderer *glamour.TermRenderer) {
+	md, err := apply_template(type_name, params, record)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -116,29 +149,31 @@ func render(type_name string, record map[string]any, renderer *glamour.TermRende
 	}
 }
 
-func matches(type_name string, types []string) bool {
-	if len(types) == 0 {
+func matches(type_name string, type_params map[string]string) bool {
+	if len(type_params) == 0 {
 		return true
 	}
-	for _, t := range types {
-		if strings.Contains(type_name, t) {
+	for key := range type_params {
+		// t contains name, name=other, name=path
+		// process: contains =, split and test is path is a path
+		if strings.Contains(type_name, key) {
 			return true
 		}
 	}
 	return false
 }
 
-func render_buffer(buf []byte, types []string, renderer *glamour.TermRenderer) {
+func render_buffer(buf []byte, type_params map[string]string, renderer *glamour.TermRenderer) {
 	record := parse(buf)
 	if record == nil {
 		slog.Debug("skipping empty record")
 		return
 	}
 	type_name := resolve_type(record)
-	if matches(type_name, types) {
-		render(type_name, record, renderer)
+	if matches(type_name, type_params) {
+		render(type_name, record, type_params, renderer)
 	} else {
-		slog.Debug("skipping type", "type_name", type_name, "types", types)
+		slog.Debug("skipping type", "type_name", type_name, "types", type_params)
 	}
 }
 

@@ -16,10 +16,17 @@ Updated! Next, add the general type matching above. And start with a test! `rode
 
 Added test for `match()`, implemented required behavior. DONE!
 
-Next: template parsing from params.
+Next: template parsing from params. Starting with another test!
 
+Testing against templates is messy. Mostly implemented.
 
+One outstanding issue: Unexpected behavior with no params. Should do everything with expected template, but is defaulting to default.
 
+More logging!
+
+Added that test after all, after refactoring resolve_template (so I could test it).
+
+Added several cases. All looking good.
 
 Time to release!
 ```

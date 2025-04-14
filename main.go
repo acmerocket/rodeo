@@ -5,13 +5,33 @@ import (
 	"flag"
 	"io"
 	"log"
+	"log/slog"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 )
 
-func parse_args() []string {
+func parse_params(params []string) map[string]string {
+	slog.Warn("parse_params", "params", params)
+
+	args := map[string]string{}
+
+	for _, val := range params {
+		parts := strings.Split(val, "=")
+		if len(parts) == 1 {
+			args[parts[0]] = ""
+		} else if len(parts) == 2 {
+			args[parts[0]] = parts[1]
+		} else {
+			slog.Warn("unknown parameter:", "param", val)
+		}
+	}
+	return args
+}
+
+func parse_args() map[string]string {
 	// wordPtr := flag.String("word", "foo", "a string")
 	// numbPtr := flag.Int("numb", 42, "an int")
 	// forkPtr := flag.Bool("fork", false, "a bool")
@@ -19,7 +39,7 @@ func parse_args() []string {
 	// flag.StringVar(&svar, "svar", "bar", "a string var")
 
 	flag.Parse()
-	return flag.Args()
+	return parse_params(flag.Args())
 }
 
 func cleanup() {

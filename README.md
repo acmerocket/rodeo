@@ -60,13 +60,14 @@ make test
 ```
 
 This project uses [`make`](https://www.gnu.org/software/make/) and provides:
-|---          |--- |
-| **build**   | Build the project. |
-| **test**    | Run the test suite. |
-| **cover**   | Run the test suite with coverage. |
-| **install** | Install the project with `go install`. |
-| **release** | Release the project. |
-| **clean**   | Clean up, remove all generates files. |
+| target | description |
+| --- | --- |
+| `make build`   | Build the project. |
+| `make test`    | Run the test suite. |
+| `make cover`   | Run the test suite with coverage. |
+| `make install` | Install the project with `go install`. |
+| `make release` | Release the project. |
+| `make clean`   | Clean up, remove all generates files. |
 
 #### Releases
 To release a new version, specify the version:

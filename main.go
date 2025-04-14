@@ -5,12 +5,17 @@ import (
 	"bytes"
 	"embed"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"log"
+	"log/slog"
 	"os"
+	"os/signal"
 	"reflect"
+	"slices"
 	"strings"
+	"syscall"
 	"text/template"
 
 	"github.com/charmbracelet/colorprofile"
@@ -23,12 +28,22 @@ import (
 //go:embed templates
 var templates embed.FS
 
+var type_uses = map[string]int{}
+
+func inc_type_use(type_name string) {
+	type_uses[type_name] += 1
+}
+
 func load_template(type_name string) (*template.Template, error) {
 	if type_name == "" {
 		type_name = "default"
 	}
 	template_file := "templates/" + type_name + ".md"
 	data, err := templates.ReadFile(template_file)
+	if os.IsNotExist(err) {
+		slog.Debug("template not found", "name", type_name)
+		data, err = templates.ReadFile("templates/default.md")
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -117,6 +132,9 @@ func toString(record map[string]any) string {
 }
 
 func parse(buf []byte) map[string]any {
+	if len(buf) == 0 {
+		return nil
+	}
 	var record map[string]any
 	json.Unmarshal(buf, &record)
 	return record
@@ -124,51 +142,59 @@ func parse(buf []byte) map[string]any {
 
 func resolve_type(record map[string]any) string {
 	// check type and record.$type
-	if t, ok := record["type"]; ok {
-		return t.(string)
-	} else if a, ok := record["action"]; ok {
-		return a.(string)
-	} else if r, ok := record["record"]; ok {
+	var type_name string = ""
+	if r, ok := record["record"]; ok {
 		rec := r.(map[string]any)
-		return rec["$type"].(string)
+		type_name = rec["$type"].(string)
+	} else if t, ok := record["type"]; ok {
+		type_name = t.(string)
+	} else if a, ok := record["action"]; ok {
+		type_name = a.(string)
 	}
-	return "default"
+	if type_name == "" {
+		// type not found
+		slog.Info("type not found", "record", record)
+		inc_type_use("[empty]")
+		return "default"
+	} else {
+		inc_type_use(type_name)
+		return type_name
+	}
 }
 
-func main() {
-	r := bufio.NewReader(os.Stdin)
-	buf := make([]byte, 0, 4*1024)
+func parse_args() []string {
+	// wordPtr := flag.String("word", "foo", "a string")
+	// numbPtr := flag.Int("numb", 42, "an int")
+	// forkPtr := flag.Bool("fork", false, "a bool")
+	// var svar string
+	// flag.StringVar(&svar, "svar", "bar", "a string var")
 
-	width, _, err := term.GetSize(int(os.Stdout.Fd()))
+	flag.Parse()
+	return flag.Args()
+}
+
+func build_renderer(stream *os.File) (*glamour.TermRenderer, error) {
+	// get terminal witdh for stdout
+	width, _, err := term.GetSize(int(stream.Fd()))
 	if err != nil {
 		log.Fatal(err)
 	}
-	//println("width:", width, "height:", height)
-
 	// Create a new renderer.
-	renderer, err := glamour.NewTermRenderer(
+	return glamour.NewTermRenderer(
 		glamour.WithAutoStyle(),
 		glamour.WithWordWrap(width),
 	)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error creating renderer: %s\n", err)
+}
+
+func render_buffer(buf []byte, types []string, renderer *glamour.TermRenderer) {
+	record := parse(buf)
+	if record == nil {
+		slog.Debug("skipping empty record")
+		return
 	}
+	type_name := resolve_type(record)
 
-	for {
-		n, err := r.Read(buf[:cap(buf)])
-		buf = buf[:n]
-		if n == 0 {
-			if err == nil {
-				continue
-			}
-			if err == io.EOF {
-				break
-			}
-			log.Fatal(err) // FIXME
-		}
-
-		record := parse(buf)
-		type_name := resolve_type(record)
+	if types == nil || len(types) == 0 || slices.Contains(types, type_name) {
 		md, err := apply_template(type_name, record)
 		if err != nil {
 			log.Fatal(err)
@@ -181,5 +207,57 @@ func main() {
 		if len(trimmed) > 0 {
 			fmt.Println(trimmed)
 		}
+	} else {
+		slog.Debug("skipping type", "type_name", type_name, "types", types)
+	}
+}
+
+func cleanup() {
+	// Note: this could be a lot better.
+	// For now, it's about tracking types
+	fmt.Println()
+	for type_name, count := range type_uses {
+		fmt.Println(type_name, count)
+	}
+}
+
+func main() {
+	// handle the sigterm
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-c
+		cleanup()
+		os.Exit(0)
+	}()
+
+	// parse cli args
+	names := parse_args()
+
+	r := bufio.NewReader(os.Stdin)
+	buf := make([]byte, 0, 4*1024)
+
+	// create a new renderer
+	renderer, err := build_renderer(os.Stdout)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for {
+		// fill the buffer
+		n, err := r.Read(buf[:cap(buf)])
+		buf = buf[:n]
+		if n == 0 {
+			if err == nil {
+				continue
+			}
+			if err == io.EOF {
+				break
+			}
+			log.Fatal(err) // FIXME
+		}
+
+		// output the buffer
+		render_buffer(buf, names, renderer)
 	}
 }

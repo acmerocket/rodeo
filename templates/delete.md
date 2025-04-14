@@ -1,1 +1,1 @@
-
+{{.action}} {{.collection}} {{.time}}

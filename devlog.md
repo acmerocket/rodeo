@@ -1,6 +1,6 @@
-## Development Log
+# Development Log
 
-### 2025-04-13
+## 2025-04-13
 Moved developer log to seperate file: devlog.md (this file)
 
 Thinking about next steps for #rodeo
@@ -40,13 +40,11 @@ Type matching: `app.bsky.feed.like`  would be matched by:
 * `app.`,  `app.bsky.feed.` - everything at the start
 * `.feed.like`,  `.like` - everything at the env
 
-
 `rodeo post` vs `rodeo .post`?
 
 For now, just substring match: "post", "repost", etc.
 
 string match against type. match, eval. otherwise skip.
-
 
 checking out docs about releases:
 - https://go.dev/doc/modules/release-workflow
@@ -257,7 +255,90 @@ to release:
 VERSION=v0.4.0 make release
 ```
 
-### 2025-04-12
+next step:
+
+### type filting
+Add simple param handling, first is an array of filters string: type.
+```
+rodeo post like
+```
+will ignore evernthing put post and like types.
+
+golang "standard" arg handling, using https://pkg.go.dev/flag
+
+https://gobyexample.com/command-line-flags:
+```
+wordPtr := flag.String("word", "foo", "a string")
+numbPtr := flag.Int("numb", 42, "an int")
+forkPtr := flag.Bool("fork", false, "a bool")
+
+var svar string
+flag.StringVar(&svar, "svar", "bar", "a string var")
+
+flag.Parse()
+
+fmt.Println("word:", *wordPtr)
+fmt.Println("numb:", *numbPtr)
+fmt.Println("fork:", *forkPtr)
+fmt.Println("svar:", svar)
+fmt.Println("tail:", flag.Args())
+```
+
+Added simple logging, with slog.
+
+The post like stuff seems to work, but I'm only seeing one type.
+
+So.... add type summary in a final table at exit.
+so... global hashmap of type and counts of that type. int
+
+Collecting the data, but can't print summary as the only way is to catch ctrl-C.
+
+https://stackoverflow.com/questions/11268943/is-it-possible-to-capture-a-ctrlc-signal-sigint-and-run-a-cleanup-function-i
+
+```
+package main
+
+import (
+    "fmt"
+    "os"
+    "os/signal"
+    "syscall"
+    "time" // or "runtime"
+)
+
+func cleanup() {
+    fmt.Println("cleanup")
+}
+
+func main() {
+    c := make(chan os.Signal)
+    signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+    go func() {
+        <-c
+        cleanup()
+        os.Exit(1)
+    }()
+
+    for {
+        fmt.Println("sleeping...")
+        time.Sleep(10 * time.Second) // or runtime.Gosched() or similar per @misterbee
+    }
+}
+```
+
+interrupt handling is working. type counts printing
+
+```
+{{ range $key, $value := . }}
+* **{{ $key }}**: {{ $value }}
+{{ end }}
+```
+
+time to cut a new release!
+
+VERSION=0.5.0 make release
+
+## 2025-04-12
 Starting work on this to see it I can make an adequite filter/formtter for [goat](https://github.com/bluesky-social/indigo/tree/main/cmd/goat) that prints selected records with fancy terminal formatting based on [lipgloss](https://github.com/charmbracelet/lipgloss).
 
 Today's goals:

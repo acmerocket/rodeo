@@ -14,10 +14,7 @@ import (
 )
 
 func parse_params(params []string) map[string]string {
-	slog.Warn("parse_params", "params", params)
-
 	args := map[string]string{}
-
 	for _, val := range params {
 		parts := strings.Split(val, "=")
 		if len(parts) == 1 {

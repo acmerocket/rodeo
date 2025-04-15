@@ -1,1 +1,1 @@
-📬 {{.record.createdAt}} {{.record.text}}
+📬 {{.action}} {{.record.createdAt}} {{.record.text}}

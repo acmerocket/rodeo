@@ -33,6 +33,7 @@ Time to release!
 VERSION=v0.6.0 make release
 ```
 
+Next steps: A few little hacks, add a "log" template for logs. Add detection to
 
 ## 2025-04-13
 Moved developer log to seperate file: devlog.md (this file)

@@ -1,2 +1,2 @@
 {{ range $key, $value := . }}
-{{$key}}: {{$value}}{{ end }}
+- {{$key}}: {{$value}}{{ end }}

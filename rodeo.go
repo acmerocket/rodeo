@@ -37,7 +37,7 @@ func load_embed(type_name string) (*template.Template, error) {
 	template_file := "templates/" + type_name + ".md"
 	data, err := templates.ReadFile(template_file)
 	if os.IsNotExist(err) {
-		slog.Error("template not found", "name", template_file)
+		slog.Debug("template not found", "name", template_file)
 		data, err = templates.ReadFile("templates/default.md")
 	}
 	if err != nil {
@@ -109,6 +109,14 @@ func resolve_type(record map[string]any) string {
 		type_name = t.(string)
 	} else if a, ok := record["action"]; ok {
 		type_name = a.(string)
+	} else {
+		// extra-special cases
+		// logs: has msg and level
+		if _, ok := record["level"]; ok {
+			if _, ok2 := record["msg"]; ok2 {
+				type_name = "log"
+			}
+		}
 	}
 	if type_name == "" {
 		// type not found

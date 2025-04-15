@@ -1,1 +1,0 @@
-{{.type}} repo: {{.payload.repo}}

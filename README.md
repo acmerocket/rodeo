@@ -50,7 +50,7 @@ goat firehose --ops | rodeo new.message.type=list
 
 To use an external template located on the filesystem (`path/to/template.md`)
 ```
-goat firehose --ops | post=path/to/template.md like=path/to/other.md
+goat firehose --ops | rodeo post=path/to/template.md like=path/to/other.md
 ```
 
 ## Development

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
+	"maps"
 	"os"
 	"strconv"
 	"strings"
@@ -48,8 +49,17 @@ func load_embed(type_name string) (*template.Template, error) {
 
 func resolve_template(type_name string, type_params map[string]string) string {
 	template_name := ""
-	if len(type_params) == 0 {
+	// check for params beyond all and default
+	check_map := map[string]string{}
+	maps.Copy(check_map, type_params)
+	delete(check_map, "all")
+	delete(check_map, "default")
+	if len(check_map) == 0 {
+		// special case: type_params contains only default or all, same as empty
 		template_name = type_name
+	} else if all, ok := type_params["all"]; ok { // FIXME const str
+		// all template specified
+		template_name = all
 	} else {
 		for key, value := range type_params {
 			if strings.Contains(type_name, key) {
@@ -60,6 +70,9 @@ func resolve_template(type_name string, type_params map[string]string) string {
 				}
 			}
 		}
+	}
+	if def, ok := type_params["default"]; ok && template_name == "" {
+		template_name = def
 	}
 	return template_name
 }

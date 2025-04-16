@@ -40,6 +40,11 @@ Some general cleanup.
 VERSION=v0.6.1 make release
 ```
 
+More use cases:
+- apply template to everything `all=path/to/template.md`
+- apply template to everything, but filter on type
+- default=some-path : if something resolves to default, use some-path (either to template or file)
+
 ## 2025-04-13
 Moved developer log to seperate file: devlog.md (this file)
 

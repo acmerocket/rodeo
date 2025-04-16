@@ -47,6 +47,12 @@ func Test_resolve_template(t *testing.T) {
 		{name: "test5", type_name: "app.bsky.feed.post", params: "feed.post=test.md", expected: "test.md"},
 		{name: "test6", type_name: "app.bsky.feed.post", params: "app.bsky.feed.like=default", expected: ""},
 		{name: "test7", type_name: "app.bsky.feed.like", params: "", expected: "app.bsky.feed.like"},
+		{name: "test-all", type_name: "app.bsky.feed.post", params: "all=test.md", expected: "test.md"},
+		{name: "test-all-filter", type_name: "app.bsky.feed.post", params: "post all=test.md", expected: "test.md"},
+		//{name: "test-all-miss", type_name: "app.bsky.feed.post", params: "like all=test.md", expected: ""},
+		{name: "test-default-ignore", type_name: "app.bsky.feed.post", params: "default=test.md", expected: "app.bsky.feed.post"},
+		{name: "test-default", type_name: "nonsense", params: "default=test.md", expected: "test.md"},
+		{name: "test-default-miss", type_name: "app.bsky.feed.post", params: "like default=test.md", expected: ""},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
